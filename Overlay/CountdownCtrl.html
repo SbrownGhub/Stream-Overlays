@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Countdown - Auto Start with Pause Indicator</title>
+
+  <!-- Oxanium font -->
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: transparent;
+      font-family: 'Oxanium', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    }
+
+    /* Timer styling */
+    #timer {
+      color: #ffffff; /* default white when running */
+      font-weight: 900;
+      font-size: 140px;
+      text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+      letter-spacing: 6px;
+      user-select: none;
+      text-align: center;
+      line-height: 1;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+    /* Control buttons */
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      padding: 12px;
+      border-radius: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 9999;
+    }
+
+    button {
+      background: #222;
+      color: white;
+      border: 2px solid #555;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #444;
+    }
+
+    @media (max-width: 800px) {
+      #timer { font-size: 80px; letter-spacing: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="timer">5:00</div>
+
+  <div id="controls">
+    <button onclick="toggleTimer()">Pause/Resume</button>
+    <button onclick="resetTimer()">Reset</button>
+  </div>
+
+  <script>
+    const startingSeconds = 5 * 60; // 5 minutes
+    let remaining = startingSeconds;
+    let timerInterval = null;
+    let isRunning = false;
+    const el = document.getElementById('timer');
+
+    const colorRunning = '#ffffff'; // white
+    const colorPaused = '#d20a0a';  // UFC red
+
+    // Format into M:SS
+    function formatMSS(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${m}:${String(sec).padStart(2,'0')}`;
+    }
+
+    // Update timer text
+    function updateDisplay() {
+      el.textContent = formatMSS(remaining);
+    }
+
+    // Start the timer
+    function startTimer() {
+      if (isRunning) return;
+      isRunning = true;
+      el.style.color = colorRunning; // turn white when running
+      timerInterval = setInterval(() => {
+        if (remaining > 0) {
+          remaining--;
+          updateDisplay();
+        } else {
+          clearInterval(timerInterval);
+          isRunning = false;
+        }
+      }, 1000);
+    }
+
+    // Pause the timer
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      el.style.color = colorPaused; // turn red when paused
+    }
+
+    // Reset the timer (paused after reset)
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      remaining = startingSeconds;
+      updateDisplay();
+      el.style.color = colorPaused; // show paused color after reset
+    }
+
+    // Toggle between start and pause
+    function toggleTimer() {
+      if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    // Initialize display and auto-start
+    updateDisplay();
+    startTimer(); // <-- automatically starts countdown on load
+
+    // Hotkeys
+    document.addEventListener('keydown', function(e) {
+      switch(e.key.toLowerCase()) {
+        case 'p': // Press P to toggle pause/resume
+          toggleTimer();
+          break;
+        case 'r': // Reset with R
+          resetTimer();
+          break;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Left-to-Right Wipe Reveal</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: transparent; /* Overlay stays see-through for Streamlabs */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Wrapper to control overflow during animation */
+    #fadeWrapper {
+      overflow: hidden;
+      display: inline-block;
+      position: relative;
+    }
+
+    /* Text Styling */
+    #fadeText {
+      font-family: 'Arial Black', Arial, sans-serif;
+      font-weight: 400; /* Regular weight */
+      font-size: 70px;
+      color: white;
+      text-transform: uppercase; /* Force ALL CAPS */
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+      white-space: nowrap; /* Prevent wrapping */
+      position: relative;
+      transform: translateZ(0); /* Fix for GPU rendering issues */
+      
+      /* Fully hidden at start (clipped from right) */
+      clip-path: inset(0 100% 0 0);
+      transition: clip-path 1.5s ease-in-out; /* Smooth reveal */
+    }
+
+    /* Class to animate text from left to right */
+    #fadeText.reveal {
+      clip-path: inset(0 0 0 0); /* Fully visible */
+    }
+  </style>
+</head>
+<body>
+  <div id="fadeWrapper">
+    <div id="fadeText">Loading...</div>
+  </div>
+
+  <script>
+    const fadeText = document.getElementById('fadeText');
+    const txtFile = 'data.txt'; // External text file for dynamic content
+
+    /**
+     * Fetch text from data.txt and update with wipe animation
+     */
+    async function updateText() {
+      try {
+        const response = await fetch(txtFile + '?t=' + Date.now()); // Cache-busting
+        const newText = await response.text();
+
+        const cleanText = newText.trim();
+
+        // Hide text (reset animation)
+        fadeText.classList.remove('reveal');
+
+        // Wait a short moment before showing the new text
+        setTimeout(() => {
+          fadeText.textContent = cleanText || "NO DATA FOUND";
+          fadeText.classList.add('reveal'); // Trigger left-to-right wipe
+        }, 100); // Small delay for smooth transition
+      } catch (error) {
+        fadeText.textContent = 'ERROR LOADING TEXT';
+        console.error('Error fetching text:', error);
+      }
+    }
+
+    // Initial load
+    updateText();
+  </script>
+</body>
+</html>

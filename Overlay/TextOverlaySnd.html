@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smooth Ramp Wipe Reveal with Sound</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: transparent; /* Keeps overlay background see-through */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Wrapper ensures text stays contained */
+    #fadeWrapper {
+      overflow: hidden;
+      display: inline-block;
+      position: relative;
+    }
+
+    /* Text Styling */
+    #fadeText {
+      font-family: 'Arial Black', Arial, sans-serif;
+      font-weight: 400; /* Regular Arial Black weight */
+      font-size: 64px;
+      color: white;
+      text-transform: uppercase; /* Force ALL CAPS */
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+      white-space: nowrap; /* Keep text on one line */
+      position: relative;
+      transform: translateZ(0); /* Forces GPU rendering for smoother animations */
+
+      /* Fully hidden at start (clipped entirely from right) */
+      clip-path: inset(0 100% 0 0);
+      
+      /* Smooth reveal transition with ramp effect */
+      transition: clip-path 1s cubic-bezier(0.65, 0, 0.35, 1); 
+    }
+
+    /* Class added when text should be fully revealed */
+    #fadeText.reveal {
+      clip-path: inset(0 0 0 0); /* Fully visible */
+    }
+
+    /* Hide audio player */
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="fadeWrapper">
+    <div id="fadeText">Loading...</div>
+  </div>
+
+  <!-- Audio element for slide sound -->
+  <audio id="slideSound" src="slide.mp3" preload="auto"></audio>
+
+  <script>
+    const fadeText = document.getElementById('fadeText');
+    const slideSound = document.getElementById('slideSound');
+    const txtFile = 'data.txt'; // Dynamic external text file
+
+    /**
+     * Fetches text from data.txt and updates overlay
+     */
+    async function updateText() {
+      try {
+        const response = await fetch(txtFile + '?t=' + Date.now()); // Prevent caching
+        const newText = await response.text();
+
+        const cleanText = newText.trim();
+
+        // Reset animation state
+        fadeText.classList.remove('reveal');
+
+        // Small delay to ensure clip-path reset before animating
+        setTimeout(() => {
+          fadeText.textContent = cleanText || "NO DATA FOUND";
+
+          // Trigger reveal animation
+          fadeText.classList.add('reveal');
+
+          // Play synchronized slide sound
+          slideSound.currentTime = 0; // Restart from beginning
+          slideSound.volume = 0.8;    // Adjust volume if needed
+          slideSound.play().catch(err => {
+            console.warn("Slide sound could not auto-play:", err);
+          });
+        }, 100); // 100ms reset delay
+      } catch (error) {
+        fadeText.textContent = 'ERROR LOADING TEXT';
+        console.error('Error fetching text:', error);
+}
+    }
+
+    // Initial load
+    updateText();
+  </script>
+</body>
+</html>
